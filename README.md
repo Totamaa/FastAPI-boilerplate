@@ -44,7 +44,7 @@ Fork it, strip what you don't need, and build on top of a solid foundation.
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-username/moviedb.git
+git clone https://github.com/Totamaa/FastAPI-boilerplate
 cd moviedb
 
 # 2. Copy environment config and fill in values
