@@ -1,0 +1,65 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cinemadb_user
+          POSTGRES_PASSWORD: ci_passwordci_passwordci_passwordci_password
+          POSTGRES_DB: cinemadb
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        env:
+          REDIS_PASSWORD: ci_passwordci_passwordci_passwordci_password
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli -a ci_passwordci_passwordci_passwordci_password ping" --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      ENVIRONMENT: test
+      APP_NAME: CinemaDB
+      APP_VERSION: "0.1.0"
+      APP_DESCRIPTION: Movie database backend API
+      APP_PORT: "8000"
+      CORS_ORIGINS: '["http://localhost:3000"]'
+      LOG_LEVEL: WARNING
+      LOG_MAX_BYTES: "10485760"
+      LOG_BACKUP_COUNT: "5"
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_NAME: cinemadb
+      DB_USER: cinemadb_user
+      DB_PASSWORD: ci_passwordci_passwordci_passwordci_password
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ci_passwordci_passwordci_passwordci_password
+      API_KEY: ci_api_key_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: "7"
+      JWT_SESSION_MAX_LIFETIME_DAYS: "30"
+      JWT_SESSION_MAX_COUNT: "5"
+      JWT_SECRET_KEY: ci_jwt_secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: pytest --cov --cov-report=term-missing --tb=short -q

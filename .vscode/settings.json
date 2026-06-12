@@ -1,0 +1,28 @@
+{
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "askForPassword": true,
+      "driver": "PostgreSQL",
+      "database": "nyaya_db",
+      "username": "nyaya_user",
+      "name": "Nyaya"
+    }
+  ],
+  "makefile.configureOnOpen": false,
+  "python-envs.alwaysUseUv": true,
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "source.organizeImports.ruff": "always",
+    "source.fixAll.ruff": "always",
+  },
+  "ruff.format.preview": true,
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+  },
+}

@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "app"
+version = "0.1.0"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # line-too-long — handled by formatter
+    "B008",   # Depends() in defaults — FastAPI DI pattern, intentional
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["src/app/main.py"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+pythonpath = [".", "src", "src/app/modules"]
+markers = [
+    "unit: pure logic, no I/O",
+    "integration: full HTTP stack, requires PostgreSQL",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:sqlalchemy",
+    "ignore::DeprecationWarning:asyncpg",
+]

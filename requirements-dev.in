@@ -1,0 +1,11 @@
+-r requirements.in
+
+uv
+pytest
+pytest-asyncio
+pytest-cov
+httpx
+faker
+aiosqlite
+pip-tools
+ruff

@@ -1,0 +1,171 @@
+name: nyaya-prod
+
+# ── Production stack ──────────────────────────────────────────────────────────
+# Start:   docker compose -f docker-compose.prod.yml up -d
+# Stop:    docker compose -f docker-compose.prod.yml down
+# Logs:    docker compose -f docker-compose.prod.yml logs -f
+#
+# Networks:
+#   nyaya_internal  (internal: true)  — DB + Redis, jamais routé vers internet
+#   nyaya_net       (bridge)          — API ↔ Proxy + accès internet sortant
+#
+# Seuls api et proxy sont sur nyaya_net. Postgres et redis sont uniquement
+# sur nyaya_internal et ne peuvent pas être joints depuis l'extérieur.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  # Uniquement sur nyaya_internal — aucun port exposé, aucun accès internet.
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    shm_size: "256mb"
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nyaya_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  # Broker Taskiq. Uniquement sur nyaya_internal — même isolation que postgres.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - nyaya_internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Migrations ─────────────────────────────────────────────────────────────
+  # One-shot: "alembic upgrade head" puis exit 0. Idempotent.
+  migrate:
+    image: ${DOCKER_IMAGE}
+    command: ["alembic", "upgrade", "head"]
+    env_file: .env
+    restart: "no"
+    networks:
+      - nyaya_internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── API ────────────────────────────────────────────────────────────────────
+  # Pont entre les deux réseaux : accède à DB/Redis via nyaya_internal,
+  # est joignable par Caddy via nyaya_net.
+  api:
+    image: ${DOCKER_IMAGE}
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - nyaya_internal
+      - nyaya_net
+    volumes:
+      - logs_data:/app/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Worker ─────────────────────────────────────────────────────────────────
+  # Taskiq worker. Sur les deux réseaux : Redis via nyaya_internal,
+  # appels IA sortants via nyaya_net.
+  # Le label ofelia déclenche le trigger mensuel le 1er du mois à 03h00.
+  worker:
+    image: ${DOCKER_IMAGE}
+    command:
+      - taskiq
+      - worker
+      - app.core.config.broker:broker
+      - app.background.tasks
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - nyaya_internal
+      - nyaya_net
+    volumes:
+      - logs_data:/app/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.monthly-review.schedule: "0 3 1 * *"
+      ofelia.job-exec.monthly-review.command: "python -m app.background.trigger_montlhy_review"
+
+  # ── Scheduler (Ofelia) ─────────────────────────────────────────────────────
+  # Lit les labels Docker et exécute les jobs via docker exec (socket en ro).
+  # Aucun accès DB/Redis direct — passe par le worker via exec.
+  scheduler:
+    image: mcuadros/ofelia:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: daemon --docker
+    networks:
+      - nyaya_net
+    depends_on:
+      worker:
+        condition: service_started
+
+  # ── Proxy (Caddy) ──────────────────────────────────────────────────────────
+  # TLS auto (Let's Encrypt), HTTP→HTTPS, reverse proxy vers api.
+  # Seul service qui expose des ports vers l'extérieur.
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 (QUIC)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data        # Certificats TLS — ne pas supprimer
+      - caddy_config:/config
+    env_file: .env
+    networks:
+      - nyaya_net
+    depends_on:
+      api:
+        condition: service_healthy
+
+# ── Networks ───────────────────────────────────────────────────────────────────
+networks:
+  nyaya_internal:
+    driver: bridge
+    internal: true   # Pas de routage internet — DB et Redis isolés
+  nyaya_net:
+    driver: bridge
+
+# ── Volumes ────────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:  # DB data — ne pas supprimer
+  redis_data:
+  caddy_data:     # Certificats TLS — ne pas supprimer
+  caddy_config:
+  logs_data:
