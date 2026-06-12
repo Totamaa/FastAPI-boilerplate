@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from faker import Faker
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +11,7 @@ fake = Faker()
 class GenreFactory:
     @staticmethod
     async def create(session: AsyncSession, **kwargs) -> GenreModel:
-        name = kwargs.get("name", fake.unique.word().capitalize())
+        name = kwargs.get("name", f"{fake.word().capitalize()}-{uuid4().hex[:6]}")
         genre = GenreModel(
             name=name,
             slug=kwargs.get("slug", name.lower().replace(" ", "-")),
