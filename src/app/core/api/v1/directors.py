@@ -86,3 +86,16 @@ async def delete_director(
     service: DirectorService = Depends(get_director_service),
 ) -> None:
     await service.delete(id)
+
+
+@router.post(
+    "/{id}/restore",
+    response_model=DirectorResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(verify_api_key)],
+)
+async def restore_director(
+    id: UUID,
+    service: DirectorService = Depends(get_director_service),
+) -> DirectorResponse:
+    return await service.restore(id)

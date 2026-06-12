@@ -6,6 +6,7 @@ from app.core.config.logs import LoggerManager
 from app.modules.directors.exceptions import DirectorNotFoundException
 from app.modules.directors.repository import DirectorRepository
 from app.modules.directors.schemas import DirectorCreate, DirectorResponse, DirectorUpdate
+from app.modules.movies.repository import MovieRepository
 
 TAG = "directors"
 
@@ -17,11 +18,13 @@ class DirectorService:
         session: AsyncSession,
         request_id: str,
         director_repository: DirectorRepository,
+        movie_repository: MovieRepository,
     ):
         self.logger = logger
         self.session = session
         self.request_id = request_id
         self.director_repository = director_repository
+        self.movie_repository = movie_repository
 
     # ── standard CRUD ────────────────────────────────────────────────────────
 
@@ -54,8 +57,16 @@ class DirectorService:
         director = await self.director_repository.get_by_id(id, self.session)
         if director is None:
             raise DirectorNotFoundException(id)
+        await self.movie_repository.unset_director(director_id=id, db=self.session)
         await self.director_repository.delete(director, self.session)
         self.logger.info(TAG, "Director deleted", extra=f"id={id}")
+
+    async def restore(self, id: UUID) -> DirectorResponse:
+        director = await self.director_repository.restore(id, self.session)
+        if director is None:
+            raise DirectorNotFoundException(id)
+        self.logger.info(TAG, "Director restored", extra=f"id={id}")
+        return DirectorResponse.from_model(director)
 
     # ── cas 2: cross-resource filter ──────────────────────────────────────────
 

@@ -109,7 +109,7 @@ class ReviewService:
         return ReviewResponse.from_model(review)
 
     async def delete(self, review_id: UUID, user_id: UUID) -> UUID:
-        """Deletes the review and returns the movie_id for post-deletion background tasks."""
+        """Soft-deletes the review and returns the movie_id for background stats recalc."""
         self.logger.info(
             tag=self.tag,
             message=f"Deleting review review_id={review_id} user_id={user_id}",
@@ -125,3 +125,15 @@ class ReviewService:
         movie_id = review.movie_id
         await self.review_repository.delete(review=review, db=self.session)
         return movie_id
+
+    async def restore(self, review_id: UUID) -> ReviewResponse:
+        """Admin-only: restores a soft-deleted review."""
+        self.logger.info(
+            tag=self.tag,
+            message=f"Restoring review review_id={review_id}",
+            extra=self.request_id,
+        )
+        review = await self.review_repository.restore(id=review_id, db=self.session)
+        if not review:
+            raise ReviewNotFoundException(id=review_id)
+        return ReviewResponse.from_model(review)

@@ -8,6 +8,7 @@ from app.modules.directors.exceptions import DirectorNotFoundException
 from app.modules.directors.model import DirectorModel
 from app.modules.genres.exceptions import GenreNotFoundException
 from app.modules.genres.repository import GenreRepository
+from app.modules.movie_cast.repository import MovieCastRepository
 from app.modules.movies.enums import MovieStatus
 from app.modules.movies.exceptions import MovieNotFoundException
 from app.modules.movies.model import MovieModel
@@ -18,6 +19,7 @@ from app.modules.movies.schemas import (
     MovieResponse,
     MovieUpdate,
 )
+from app.modules.reviews.repository import ReviewRepository
 
 
 class MovieService:
@@ -28,6 +30,8 @@ class MovieService:
         request_id: str,
         movie_repository: MovieRepository,
         genre_repository: GenreRepository,
+        review_repository: ReviewRepository,
+        cast_repository: MovieCastRepository,
     ):
         self.tag = "SERVICE:Movie"
         self.logger = logger
@@ -35,6 +39,8 @@ class MovieService:
         self.request_id = request_id
         self.movie_repository = movie_repository
         self.genre_repository = genre_repository
+        self.review_repository = review_repository
+        self.cast_repository = cast_repository
 
     async def _validate_director(self, director_id: UUID) -> None:
         result = await self.session.execute(
@@ -140,4 +146,17 @@ class MovieService:
             message=f"Deleting movie id={id}",
             extra=self.request_id,
         )
+        await self.review_repository.soft_delete_by_movie(movie_id=id, db=self.session)
+        await self.cast_repository.soft_delete_by_movie(movie_id=id, db=self.session)
         await self.movie_repository.delete(movie=movie, db=self.session)
+
+    async def restore(self, id: UUID) -> MovieResponse:
+        movie = await self.movie_repository.restore(id=id, db=self.session)
+        if not movie:
+            raise MovieNotFoundException(id=id)
+        self.logger.info(
+            tag=self.tag,
+            message=f"Restored movie id={id}",
+            extra=self.request_id,
+        )
+        return MovieResponse.from_model(movie)

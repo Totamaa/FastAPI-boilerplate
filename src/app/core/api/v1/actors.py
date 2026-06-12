@@ -73,3 +73,16 @@ async def delete_actor(
     service: ActorService = Depends(get_actor_service),
 ) -> None:
     await service.delete(id)
+
+
+@router.post(
+    "/{id}/restore",
+    response_model=ActorResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(verify_api_key)],
+)
+async def restore_actor(
+    id: UUID,
+    service: ActorService = Depends(get_actor_service),
+) -> ActorResponse:
+    return await service.restore(id)

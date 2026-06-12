@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -33,8 +34,17 @@ class ActorRepository:
         return actor
 
     async def delete(self, actor: ActorModel, db: AsyncSession) -> None:
-        await db.delete(actor)
+        actor.deleted_at = datetime.now(UTC)
         await db.flush()
+
+    async def restore(self, id: UUID, db: AsyncSession) -> ActorModel | None:
+        stmt = select(ActorModel).where(ActorModel.id == id).execution_options(include_deleted=True)
+        result = await db.execute(stmt)
+        entity = result.scalar_one_or_none()
+        if entity is not None:
+            entity.deleted_at = None
+            await db.flush()
+        return entity
 
     async def get_with_cast(self, id: UUID, db: AsyncSession) -> ActorModel | None:
         result = await db.execute(

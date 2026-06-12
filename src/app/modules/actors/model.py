@@ -12,6 +12,4 @@ class ActorModel(BaseModel):
     nationality = Column(String(100), nullable=True)
     biography = Column(Text, nullable=True)
 
-    cast_entries = relationship(
-        "MovieCastModel", back_populates="actor", passive_deletes=True
-    )
+    cast_entries = relationship("MovieCastModel", back_populates="actor", passive_deletes=True)

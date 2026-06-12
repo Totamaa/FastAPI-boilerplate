@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -82,7 +83,23 @@ class MovieRepository:
         movie: MovieModel,
         db: AsyncSession,
     ) -> None:
-        await db.delete(movie)
+        movie.deleted_at = datetime.now(UTC)
+        await db.flush()
+
+    async def restore(self, id: UUID, db: AsyncSession) -> MovieModel | None:
+        stmt = select(MovieModel).where(MovieModel.id == id).execution_options(include_deleted=True)
+        result = await db.execute(stmt)
+        entity = result.scalar_one_or_none()
+        if entity is not None:
+            entity.deleted_at = None
+            await db.flush()
+        return entity
+
+    async def unset_director(self, director_id: UUID, db: AsyncSession) -> None:
+        stmt = (
+            update(MovieModel).where(MovieModel.director_id == director_id).values(director_id=None)
+        )
+        await db.execute(stmt)
         await db.flush()
 
     async def update_stats(

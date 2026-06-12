@@ -80,6 +80,19 @@ async def delete_movie(
     await service.delete(id)
 
 
+@router.post(
+    "/{id}/restore",
+    response_model=MovieResponse,
+    status_code=http_status.HTTP_200_OK,
+    dependencies=[Depends(verify_api_key)],
+)
+async def restore_movie(
+    id: UUID,
+    service: MovieService = Depends(get_movie_service),
+) -> MovieResponse:
+    return await service.restore(id)
+
+
 @router.patch(
     "/{id}/details",
     response_model=MovieDetailResponse,

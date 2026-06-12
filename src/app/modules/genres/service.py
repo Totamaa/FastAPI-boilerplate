@@ -55,3 +55,11 @@ class GenreService:
             raise GenreNotFoundException(id)
         await self.genre_repository.delete(genre, self.session)
         self.logger.info(TAG, "Genre deleted", extra=f"id={id}, request_id={self.request_id}")
+
+    async def restore(self, id: UUID) -> GenreResponse:
+        self.logger.info(TAG, "Restoring genre", extra=f"id={id}, request_id={self.request_id}")
+        genre = await self.genre_repository.restore(id, self.session)
+        if genre is None:
+            raise GenreNotFoundException(id)
+        self.logger.info(TAG, "Genre restored", extra=f"id={id}, request_id={self.request_id}")
+        return GenreResponse.from_model(genre)

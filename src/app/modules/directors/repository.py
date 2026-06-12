@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -37,8 +38,21 @@ class DirectorRepository:
         return director
 
     async def delete(self, director: DirectorModel, db: AsyncSession) -> None:
-        await db.delete(director)
+        director.deleted_at = datetime.now(UTC)
         await db.flush()
+
+    async def restore(self, id: UUID, db: AsyncSession) -> DirectorModel | None:
+        stmt = (
+            select(DirectorModel)
+            .where(DirectorModel.id == id)
+            .execution_options(include_deleted=True)
+        )
+        result = await db.execute(stmt)
+        entity = result.scalar_one_or_none()
+        if entity is not None:
+            entity.deleted_at = None
+            await db.flush()
+        return entity
 
     # ── cas 2: cross-resource filter ──────────────────────────────────────────
 

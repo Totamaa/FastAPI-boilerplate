@@ -1,9 +1,11 @@
-from uuid import UUID
+from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.logs import LoggerManager
 from app.core.security.hash_lib import hash_password, verify_password
+from app.modules.reviews.repository import ReviewRepository
 from app.modules.users.exceptions import (
     InvalidCredentialsException,
     UserAlreadyExistsException,
@@ -22,12 +24,14 @@ class UserService:
         session: AsyncSession,
         request_id: str,
         user_repository: UserRepository,
+        review_repository: ReviewRepository,
     ):
         self.tag = "SERVICE:User"
         self.logger = logger
         self.session = session
         self.request_id = request_id
         self.user_repository = user_repository
+        self.review_repository = review_repository
 
     async def get_by_id(self, id: UUID) -> UserResponse:
         user = await self.user_repository.get_by_id(id=id, db=self.session)
@@ -50,6 +54,25 @@ class UserService:
             hashed_password=hash_password(data.password),
         )
         return await self.user_repository.create(user=user, db=self.session)
+
+    async def delete(self, id: UUID) -> None:
+        user = await self.user_repository.get_by_id(id=id, db=self.session)
+        if not user:
+            raise UserNotFoundException(id=id)
+        self.logger.info(tag=self.tag, message=f"Deleting user id={id}", extra=self.request_id)
+        # Anonymize PII immediately (RGPD right to erasure).
+        user.email = f"deleted-{uuid4()}@deleted.local"
+        user.hashed_password = "REDACTED"
+        user.deleted_at = datetime.now(UTC)
+        await self.review_repository.soft_delete_by_user(user_id=id, db=self.session)
+        await self.session.flush()
+
+    async def restore(self, id: UUID) -> UserResponse:
+        user = await self.user_repository.restore(id=id, db=self.session)
+        if not user:
+            raise UserNotFoundException(id=id)
+        self.logger.info(tag=self.tag, message=f"Restored user id={id}", extra=self.request_id)
+        return UserResponse.from_model(user)
 
     async def authenticate(self, data: UserLogin) -> UserModel:
         self.logger.info(

@@ -12,6 +12,4 @@ class GenreModel(BaseModel):
     slug = Column(String(100), unique=True, nullable=False)
     description = Column(Text, nullable=True)
 
-    movies = relationship(
-        "MovieModel", secondary=movie_genres, back_populates="genres"
-    )
+    movies = relationship("MovieModel", secondary=movie_genres, back_populates="genres")

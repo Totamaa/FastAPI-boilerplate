@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -32,5 +33,14 @@ class GenreRepository:
         return genre
 
     async def delete(self, genre: GenreModel, db: AsyncSession) -> None:
-        await db.delete(genre)
+        genre.deleted_at = datetime.now(UTC)
         await db.flush()
+
+    async def restore(self, id: UUID, db: AsyncSession) -> GenreModel | None:
+        stmt = select(GenreModel).where(GenreModel.id == id).execution_options(include_deleted=True)
+        result = await db.execute(stmt)
+        entity = result.scalar_one_or_none()
+        if entity is not None:
+            entity.deleted_at = None
+            await db.flush()
+        return entity

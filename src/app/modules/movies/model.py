@@ -38,15 +38,9 @@ class MovieModel(BaseModel):
         uselist=False,
         passive_deletes=True,
     )
-    genres = relationship(
-        "GenreModel", secondary=movie_genres, back_populates="movies"
-    )
-    cast = relationship(
-        "MovieCastModel", back_populates="movie", passive_deletes=True
-    )
-    reviews = relationship(
-        "ReviewModel", back_populates="movie", passive_deletes=True
-    )
+    genres = relationship("GenreModel", secondary=movie_genres, back_populates="movies")
+    cast = relationship("MovieCastModel", back_populates="movie", passive_deletes=True)
+    reviews = relationship("ReviewModel", back_populates="movie", passive_deletes=True)
 
     __table_args__ = (
         Index("ix_movies_director_id", "director_id"),

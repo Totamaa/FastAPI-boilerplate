@@ -25,3 +25,28 @@ async def get_user(
     service: UserService = Depends(get_user_service),
 ) -> UserResponse:
     return await service.get_by_id(id=id)
+
+
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(verify_api_key)],
+)
+async def delete_user(
+    id: UUID,
+    service: UserService = Depends(get_user_service),
+) -> None:
+    await service.delete(id=id)
+
+
+@router.post(
+    "/{id}/restore",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(verify_api_key)],
+)
+async def restore_user(
+    id: UUID,
+    service: UserService = Depends(get_user_service),
+) -> UserResponse:
+    return await service.restore(id=id)

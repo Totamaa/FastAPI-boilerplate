@@ -1,6 +1,7 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -82,7 +83,36 @@ class ReviewRepository:
         review: ReviewModel,
         db: AsyncSession,
     ) -> None:
-        await db.delete(review)
+        review.deleted_at = datetime.now(UTC)
+        await db.flush()
+
+    async def restore(self, id: UUID, db: AsyncSession) -> ReviewModel | None:
+        stmt = (
+            select(ReviewModel).where(ReviewModel.id == id).execution_options(include_deleted=True)
+        )
+        result = await db.execute(stmt)
+        entity = result.scalar_one_or_none()
+        if entity is not None:
+            entity.deleted_at = None
+            await db.flush()
+        return entity
+
+    async def soft_delete_by_movie(self, movie_id: UUID, db: AsyncSession) -> None:
+        stmt = (
+            update(ReviewModel)
+            .where(ReviewModel.movie_id == movie_id)
+            .values(deleted_at=datetime.now(UTC))
+        )
+        await db.execute(stmt)
+        await db.flush()
+
+    async def soft_delete_by_user(self, user_id: UUID, db: AsyncSession) -> None:
+        stmt = (
+            update(ReviewModel)
+            .where(ReviewModel.user_id == user_id)
+            .values(deleted_at=datetime.now(UTC))
+        )
+        await db.execute(stmt)
         await db.flush()
 
     async def compute_movie_stats(

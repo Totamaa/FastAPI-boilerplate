@@ -3,6 +3,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from app.core.config.logs import get_logger
 from app.scheduler.jobs.movie_stats import run as run_movie_stats
+from app.scheduler.jobs.purge import run as run_purge
 from app.scheduler.jobs.trending import run as run_trending
 
 logger = get_logger()
@@ -14,6 +15,7 @@ def start_scheduler() -> None:
     scheduler.add_job(
         run_trending, CronTrigger(day_of_week="mon", hour=8, minute=0), id="log_trending_movies"
     )
+    scheduler.add_job(run_purge, CronTrigger(hour=3, minute=0), id="purge_soft_deleted")
     scheduler.start()
     logger.info("SCHEDULER:Start", "Scheduler started with tasks.")
 

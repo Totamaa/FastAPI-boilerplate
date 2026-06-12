@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 
 from app.background.tasks.movie_stats import update_movie_stats_after_review
-from app.core.api.dependencies.auth import get_current_user
+from app.core.api.dependencies.auth import get_current_user, verify_api_key
 from app.modules.reviews.dependencies import get_review_service
 from app.modules.reviews.schemas import (
     ReviewCreate,
@@ -59,3 +59,19 @@ async def delete_review(
 ) -> None:
     movie_id = await service.delete(review_id=id, user_id=current_user.id)
     background_tasks.add_task(update_movie_stats_after_review, movie_id)
+
+
+@router.post(
+    "/{id}/restore",
+    response_model=ReviewResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(verify_api_key)],
+)
+async def restore_review(
+    id: UUID,
+    background_tasks: BackgroundTasks,
+    service: ReviewService = Depends(get_review_service),
+) -> ReviewResponse:
+    review = await service.restore(review_id=id)
+    background_tasks.add_task(update_movie_stats_after_review, review.movie_id)
+    return review

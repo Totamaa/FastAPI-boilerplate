@@ -44,3 +44,12 @@ class UserRepository:
             setattr(user, key, value)
         await db.flush()
         return user
+
+    async def restore(self, id: UUID, db: AsyncSession) -> UserModel | None:
+        stmt = select(UserModel).where(UserModel.id == id).execution_options(include_deleted=True)
+        result = await db.execute(stmt)
+        entity = result.scalar_one_or_none()
+        if entity is not None:
+            entity.deleted_at = None
+            await db.flush()
+        return entity

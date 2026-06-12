@@ -1,6 +1,7 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -76,5 +77,36 @@ class MovieCastRepository:
         entry: MovieCastModel,
         db: AsyncSession,
     ) -> None:
-        await db.delete(entry)
+        entry.deleted_at = datetime.now(UTC)
+        await db.flush()
+
+    async def restore(self, id: UUID, db: AsyncSession) -> MovieCastModel | None:
+        stmt = (
+            select(MovieCastModel)
+            .where(MovieCastModel.id == id)
+            .execution_options(include_deleted=True)
+        )
+        result = await db.execute(stmt)
+        entity = result.scalar_one_or_none()
+        if entity is not None:
+            entity.deleted_at = None
+            await db.flush()
+        return entity
+
+    async def soft_delete_by_movie(self, movie_id: UUID, db: AsyncSession) -> None:
+        stmt = (
+            update(MovieCastModel)
+            .where(MovieCastModel.movie_id == movie_id)
+            .values(deleted_at=datetime.now(UTC))
+        )
+        await db.execute(stmt)
+        await db.flush()
+
+    async def soft_delete_by_actor(self, actor_id: UUID, db: AsyncSession) -> None:
+        stmt = (
+            update(MovieCastModel)
+            .where(MovieCastModel.actor_id == actor_id)
+            .values(deleted_at=datetime.now(UTC))
+        )
+        await db.execute(stmt)
         await db.flush()

@@ -6,6 +6,7 @@ from app.core.config.logs import LoggerManager
 from app.modules.actors.exceptions import ActorNotFoundException
 from app.modules.actors.repository import ActorRepository
 from app.modules.actors.schemas import ActorCreate, ActorResponse, ActorUpdate
+from app.modules.movie_cast.repository import MovieCastRepository
 
 TAG = "actors"
 
@@ -17,11 +18,13 @@ class ActorService:
         session: AsyncSession,
         request_id: str,
         actor_repository: ActorRepository,
+        cast_repository: MovieCastRepository,
     ):
         self.logger = logger
         self.session = session
         self.request_id = request_id
         self.actor_repository = actor_repository
+        self.cast_repository = cast_repository
 
     async def get_all(self, limit: int = 20, offset: int = 0) -> list[ActorResponse]:
         actors = await self.actor_repository.get_all(self.session, limit=limit, offset=offset)
@@ -56,5 +59,13 @@ class ActorService:
         actor = await self.actor_repository.get_by_id(id, self.session)
         if actor is None:
             raise ActorNotFoundException(id)
+        await self.cast_repository.soft_delete_by_actor(id, self.session)
         await self.actor_repository.delete(actor, self.session)
         self.logger.info(TAG, "Actor deleted", extra=f"id={id}")
+
+    async def restore(self, id: UUID) -> ActorResponse:
+        actor = await self.actor_repository.restore(id, self.session)
+        if actor is None:
+            raise ActorNotFoundException(id)
+        self.logger.info(TAG, "Actor restored", extra=f"id={id}")
+        return ActorResponse.from_model(actor)

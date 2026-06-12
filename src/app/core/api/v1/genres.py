@@ -50,3 +50,16 @@ async def delete_genre(
     service: GenreService = Depends(get_genre_service),
 ) -> None:
     await service.delete(id)
+
+
+@router.post(
+    "/{id}/restore",
+    response_model=GenreResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(verify_api_key)],
+)
+async def restore_genre(
+    id: UUID,
+    service: GenreService = Depends(get_genre_service),
+) -> GenreResponse:
+    return await service.restore(id)
