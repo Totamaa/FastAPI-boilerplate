@@ -1,4 +1,4 @@
-# CinemaDB — Documentation technique
+# FastAPI Boilerplate — Documentation technique
 
 ## Table des matières
 
@@ -115,7 +115,7 @@ make db-reset
 ### 5.1. Arborescence
 
 ```txt
-cinemadb/
+moviedb/
 ├── .env.example
 ├── alembic.ini
 ├── docker-compose.yml
@@ -350,7 +350,7 @@ Toutes les variables sont lues depuis `.env` (copié depuis `.env.example`) et v
 | Variable | Exemple | Rôle |
 | --- | --- | --- |
 | `ENVIRONMENT` | `dev` | Contexte d'exécution : `test` \| `dev` \| `ppr` \| `prod` |
-| `APP_NAME` | `CinemaDB` | Nom de l'application (3–20 caractères) |
+| `APP_NAME` | `FastAPI Boilerplate` | Nom de l'application (3–20 caractères) |
 | `APP_VERSION` | `0.1.0` | Version semver |
 | `APP_DESCRIPTION` | `Movie database backend API` | Description courte (3–200 caractères) |
 | `APP_PORT` | `8000` | Port interne uvicorn |
@@ -371,8 +371,8 @@ Toutes les variables sont lues depuis `.env` (copié depuis `.env.example`) et v
 | --- | --- | --- |
 | `DB_HOST` | `localhost` | Adresse du serveur PostgreSQL |
 | `DB_PORT` | `5432` | Port TCP |
-| `DB_NAME` | `cinemadb` | Nom de la base |
-| `DB_USER` | `cinemadb_user` | Utilisateur PostgreSQL |
+| `DB_NAME` | `moviedb` | Nom de la base |
+| `DB_USER` | `moviedb_user` | Utilisateur PostgreSQL |
 | `DB_PASSWORD` | *(secret)* | Mot de passe — générer avec `openssl rand -hex 64` |
 
 En dev, PostgreSQL tourne via Docker Compose.
@@ -540,11 +540,11 @@ push / pull_request → main
 | Variable | Valeur CI |
 | --- | --- |
 | `ENVIRONMENT` | `test` |
-| `APP_NAME` | `CinemaDB` |
+| `APP_NAME` | `FastAPI Boilerplate` |
 | `APP_PORT` | `8000` |
 | `DB_HOST` | `localhost` |
-| `DB_NAME` | `cinemadb` |
-| `DB_USER` | `cinemadb_user` |
+| `DB_NAME` | `moviedb` |
+| `DB_USER` | `moviedb_user` |
 | `REDIS_HOST` | `localhost` |
 | `JWT_ALGORITHM` | `HS256` |
 | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` |

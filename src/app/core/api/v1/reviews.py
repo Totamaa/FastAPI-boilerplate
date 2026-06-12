@@ -1,9 +1,11 @@
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.background.tasks.movie_stats import update_movie_stats_after_review
 from app.core.api.dependencies.auth import get_current_user, verify_api_key
+from app.core.api.dependencies.db import get_session
 from app.modules.reviews.dependencies import get_review_service
 from app.modules.reviews.schemas import (
     ReviewCreate,
@@ -33,10 +35,10 @@ async def create_review(
     background_tasks: BackgroundTasks,
     current_user: UserModel = Depends(get_current_user),
     service: ReviewService = Depends(get_review_service),
+    db: AsyncSession = Depends(get_session),
 ) -> ReviewResponse:
     review = await service.create(user_id=current_user.id, data=payload)
-    # Update movie avg_rating and review_count without blocking the response
-    background_tasks.add_task(update_movie_stats_after_review, review.movie_id)
+    background_tasks.add_task(update_movie_stats_after_review, review.movie_id, db)
     return review
 
 
@@ -56,9 +58,10 @@ async def delete_review(
     background_tasks: BackgroundTasks,
     current_user: UserModel = Depends(get_current_user),
     service: ReviewService = Depends(get_review_service),
+    db: AsyncSession = Depends(get_session),
 ) -> None:
     movie_id = await service.delete(review_id=id, user_id=current_user.id)
-    background_tasks.add_task(update_movie_stats_after_review, movie_id)
+    background_tasks.add_task(update_movie_stats_after_review, movie_id, db)
 
 
 @router.post(
@@ -71,7 +74,8 @@ async def restore_review(
     id: UUID,
     background_tasks: BackgroundTasks,
     service: ReviewService = Depends(get_review_service),
+    db: AsyncSession = Depends(get_session),
 ) -> ReviewResponse:
     review = await service.restore(review_id=id)
-    background_tasks.add_task(update_movie_stats_after_review, review.movie_id)
+    background_tasks.add_task(update_movie_stats_after_review, review.movie_id, db)
     return review

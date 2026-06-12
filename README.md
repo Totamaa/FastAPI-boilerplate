@@ -1,50 +1,104 @@
-# Nyaya
+# FastAPI Boilerplate
 
-## Message Evaluation v1
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
+[![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen?style=flat-square)](tests/)
+[![CI](https://img.shields.io/github/actions/workflow/status/your-username/moviedb/test.yml?style=flat-square&label=CI)](https://github.com/your-username/moviedb/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
-Le dépôt contient maintenant une brique `llm.evaluation` qui :
-- évalue un message via un appel LLM structuré sur 9 critères textuels,
-- calcule le critère `likes` hors LLM à partir de `likes_normalized`,
-- calcule le score global pondéré,
-- persiste les résultats et événements en JSONL append-only,
-- traite des lots via un worker asynchrone.
+A production-ready FastAPI boilerplate built around a movie database domain.
+Async SQLAlchemy, JWT + API key auth, background tasks, scheduled jobs, soft delete — all wired up and tested.
 
-### Lancer un lot
+---
 
-```bash
-PYTHONPATH=src/app/modules python -m llm.evaluate_batch requests.jsonl
-```
+## Overview
 
-Chaque ligne de `requests.jsonl` doit contenir un `MessageEvaluationInput` sérialisé en JSON.
+FastAPI Boilerplate is a **boilerplate** for building production-grade REST APIs with FastAPI. It uses a movie catalogue as its domain (movies, actors, directors, genres, reviews) so every pattern is grounded in realistic data relationships rather than abstract CRUD.
 
-### Tests
+Fork it, strip what you don't need, and build on top of a solid foundation.
 
-```bash
-pytest
-```
+## Stack
 
-### Benchmark datasets
+| Layer | Technology |
+| --- | --- |
+| Framework | FastAPI 0.115 + Uvicorn |
+| ORM | SQLAlchemy 2.0 (async) |
+| Database | PostgreSQL 16 |
+| Cache | Redis 7 |
+| Migrations | Alembic |
+| Auth | JWT (access + refresh) + API key |
+| Scheduler | APScheduler (cron jobs) |
+| Testing | pytest-asyncio, httpx, coverage ≥ 85 % |
+| Packaging | uv + pip-tools |
 
-Les jeux de `src/app/modules/llm/test_dataset/*.json` utilisent un `input` au format
-`MessageEvaluationInput` (même forme que les messages entrants), avec 20 items par dataset.
+## Prerequisites
 
-Pour exécuter les jeux de contrôle contre le modèle configuré :
+- **Python 3.12+**
+- **Docker Desktop** (PostgreSQL + Redis via Docker Compose)
+- **Make** — on Windows use Git Bash, WSL, or [GnuWin32](http://gnuwin32.sourceforge.net/packages/make.htm)
 
-```bash
-PYTHONPATH=src/app/modules python -m llm.benchmark_datasets
-```
-
-Pour limiter l'exécution à un dataset :
-
-```bash
-PYTHONPATH=src/app/modules python -m llm.benchmark_datasets --dataset src/app/modules/llm/test_dataset/relevance_control.json
-```
-
-### Export train/test au format `ENTREE_MESSAGE`
-
-Pour normaliser les jeux de contrôle vers un format homogène (`input` compatible `MessageEvaluationInput`)
-et égaliser les datasets de critères :
+## Quick start
 
 ```bash
-PYTHONPATH=src/app/modules python -m llm.export_training_dataset --output data/training_messages_equalized.jsonl
+# 1. Clone
+git clone https://github.com/your-username/moviedb.git
+cd moviedb
+
+# 2. Copy environment config and fill in values
+cp .env.example .env
+
+# 3. First-time setup: creates venv, installs deps, starts Docker services, runs migrations
+make setup
+
+# 4. Start the dev server (hot-reload)
+make dev
 ```
+
+The API is available at `http://localhost:8000` and the interactive docs at `http://localhost:8000/docs`.
+
+## Common commands
+
+```bash
+make dev          # Start API dev server + worker
+make test         # Run tests with coverage report
+make migrate      # Apply pending Alembic migrations
+make sync         # Recompile deps + sync venv + migrate (after a pull)
+make fix          # Auto-format and fix lint issues (ruff)
+make check        # Lint check without modifying files (CI)
+make down         # Stop Docker services
+make help         # List all available commands
+```
+
+## Documentation
+
+All technical documentation lives in [`docs/`](docs/):
+
+| File | Contents |
+| --- | --- |
+| [`docs/info.md`](docs/info.md) | Architecture, auth, env vars, migrations, CI |
+| [`docs/api-boilerplate-roadmap.md`](docs/api-boilerplate-roadmap.md) | Roadmap and feature backlog |
+
+## Project structure
+
+```text
+src/app/
+├── core/           # Config, auth, dependencies, middleware
+├── modules/        # Domain modules: movies, actors, directors, genres, reviews, users
+├── background/     # Async background tasks (post-request)
+├── scheduler/      # Scheduled jobs (APScheduler cron)
+└── main.py
+
+migrations/         # Alembic migration versions
+tests/
+├── unit/           # Unit tests
+└── integration/    # Integration tests (real Postgres, per-test rollback)
+```
+
+Each domain module follows the same layered structure: `model → repository → service → schemas → router → dependencies`.
+
+## License
+
+MIT

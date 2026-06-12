@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════════════════════════
-#  CinemaDB — Developer Makefile
+#  FastAPI Boilerplate — Developer Makefile
 #  Compatible: Linux / macOS / Windows (Git Bash)
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -43,7 +43,7 @@ _venv-check:
 .PHONY: help
 help: ## Show available commands
 	@echo ""
-	@echo "  CinemaDB — available commands"
+	@echo "  FastAPI Boilerplate — available commands"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
@@ -135,7 +135,7 @@ db-reset: _venv-check ## Wipe Postgres container + volume, recreate and migrate 
 	@echo "WARNING: Postgres container and data volume will be destroyed."
 	@read -p "Are you sure? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
 	docker compose rm -sf postgres
-	docker volume rm cinemadb_postgres_data 2>/dev/null || true
+	docker volume rm moviedb_postgres_data 2>/dev/null || true
 	docker compose up -d postgres
 	@echo "Waiting for Postgres..."
 	@until docker compose exec -T postgres pg_isready -q 2>/dev/null; do printf "."; sleep 1; done

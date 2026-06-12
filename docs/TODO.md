@@ -1,4 +1,4 @@
-# CinemaDB - Idées d'évolution
+# FastAPI Boilerplate - Idées d'évolution
 
 ## Protocoles & transport
 

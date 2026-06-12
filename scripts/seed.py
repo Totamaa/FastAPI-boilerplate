@@ -1020,7 +1020,7 @@ async def _insert_users(session, n_users: int) -> list[UserModel]:
     t = time.perf_counter()
 
     admin = UserModel(
-        email="admin@cinemadb.com",
+        email="admin@moviedb.com",
         hashed_password=hash_password("Admin1234!"),
         is_active=True,
         is_admin=True,
@@ -1028,8 +1028,8 @@ async def _insert_users(session, n_users: int) -> list[UserModel]:
     session.add(admin)
     rows: list[UserModel] = [admin]
 
-    regular_pw = hash_password("Cinemadb1!")
-    seen: set[str] = {"admin@cinemadb.com"}
+    regular_pw = hash_password("Moviedb1!")
+    seen: set[str] = {"admin@moviedb.com"}
     fake.unique.clear()
     for _ in range(n_users):
         email = fake.unique.email()
@@ -1162,7 +1162,7 @@ async def _clear(session) -> None:
 async def seed(n_users: int, reviews_per_user: int, clear: bool) -> None:
     t0 = time.perf_counter()
     print()
-    print("  \033[1mCinemaDB seed\033[0m")
+    print("  \033[1mMovieDB seed\033[0m")
     print("  " + "─" * 46)
 
     async with AsyncSessionLocal() as session:
@@ -1190,13 +1190,13 @@ async def seed(n_users: int, reviews_per_user: int, clear: bool) -> None:
     print("  " + "─" * 46)
     print(f"  Done in \033[1m{time.perf_counter() - t0:.2f}s\033[0m")
     print()
-    print("  \033[1mAdmin\033[0m   admin@cinemadb.com  /  Admin1234!")
-    print("  \033[1mUsers\033[0m   <faker email>       /  Cinemadb1!")
+    print("  \033[1mAdmin\033[0m   admin@moviedb.com  /  Admin1234!")
+    print("  \033[1mUsers\033[0m   <faker email>       /  Moviedb1!")
     print()
 
 
 def _parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Seed the CinemaDB database with realistic data.")
+    p = argparse.ArgumentParser(description="Seed the MovieDB database with realistic data.")
     p.add_argument("--users", type=int, default=20, help="Number of regular users (default: 20)")
     p.add_argument("--reviews", type=int, default=8, help="Reviews per user (default: 8)")
     p.add_argument(

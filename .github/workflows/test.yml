@@ -14,9 +14,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: cinemadb_user
+          POSTGRES_USER: moviedb_user
           POSTGRES_PASSWORD: ci_passwordci_passwordci_passwordci_password
-          POSTGRES_DB: cinemadb
+          POSTGRES_DB: moviedb
         ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
@@ -30,7 +30,7 @@ jobs:
 
     env:
       ENVIRONMENT: test
-      APP_NAME: CinemaDB
+      APP_NAME: FastAPI Boilerplate
       APP_VERSION: "0.1.0"
       APP_DESCRIPTION: Movie database backend API
       APP_PORT: "8000"
@@ -40,8 +40,8 @@ jobs:
       LOG_BACKUP_COUNT: "5"
       DB_HOST: localhost
       DB_PORT: "5432"
-      DB_NAME: cinemadb
-      DB_USER: cinemadb_user
+      DB_NAME: moviedb
+      DB_USER: moviedb_user
       DB_PASSWORD: ci_passwordci_passwordci_passwordci_password
       REDIS_HOST: localhost
       REDIS_PORT: "6379"
