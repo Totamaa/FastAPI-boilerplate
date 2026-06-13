@@ -24,10 +24,11 @@ class TestAuthMeAuth:
             await client.get(BASE, headers={"Authorization": f"Bearer {token}"})
         ).status_code == 401
 
-    async def test_refresh_token_rejected_401(self, client, test_user):
-        from app.core.security.jwt_lib import create_refresh_token
+    async def test_refresh_type_jwt_rejected_401(self, client, test_user, settings):
+        from jose import jwt
 
-        token = create_refresh_token(test_user.id)
+        payload = {"sub": str(test_user.id), "type": "refresh", "exp": int(time.time()) + 300}
+        token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         assert (
             await client.get(BASE, headers={"Authorization": f"Bearer {token}"})
         ).status_code == 401

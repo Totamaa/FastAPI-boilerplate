@@ -13,6 +13,7 @@ import app.modules.movie_cast.model  # noqa: F401
 import app.modules.movie_details.model  # noqa: F401
 import app.modules.movies.model  # noqa: F401
 import app.modules.reviews.model  # noqa: F401
+import app.modules.tokens.model  # noqa: F401
 import app.modules.users.model  # noqa: F401
 from app.core.config.settings import get_settings
 

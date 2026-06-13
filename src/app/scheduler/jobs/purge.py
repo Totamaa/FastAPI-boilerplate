@@ -13,6 +13,7 @@ from app.modules.genres.model import GenreModel
 from app.modules.movie_cast.model import MovieCastModel
 from app.modules.movies.model import MovieModel
 from app.modules.reviews.model import ReviewModel
+from app.modules.tokens.model import RefreshTokenFamilyModel, RefreshTokenModel
 from app.modules.users.model import UserModel
 
 logger = get_logger()
@@ -55,3 +56,34 @@ async def purge_soft_deleted() -> None:
 
 def run() -> None:
     asyncio.run(purge_soft_deleted())
+
+
+async def purge_expired_tokens() -> None:
+    now = datetime.now(UTC)
+    cutoff = now - timedelta(days=RETENTION_DAYS)
+    logger.info(
+        "SCHEDULER:PurgeTokens", "Cleaning up expired refresh tokens and old revoked families"
+    )
+
+    async with AsyncSessionLocal() as session, UnitOfWork(session):
+        rt_result = await session.execute(
+            delete(RefreshTokenModel).where(RefreshTokenModel.expires_at < now)
+        )
+        rt_count = rt_result.rowcount
+
+        fam_result = await session.execute(
+            delete(RefreshTokenFamilyModel).where(
+                RefreshTokenFamilyModel.deleted_at.is_not(None),
+                RefreshTokenFamilyModel.deleted_at < cutoff,
+            )
+        )
+        fam_count = fam_result.rowcount
+
+    logger.info(
+        "SCHEDULER:PurgeTokens",
+        f"Purged {rt_count} expired tokens and {fam_count} old revoked families",
+    )
+
+
+def run_tokens() -> None:
+    asyncio.run(purge_expired_tokens())
