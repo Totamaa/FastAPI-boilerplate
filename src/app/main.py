@@ -11,6 +11,8 @@ from app.core.errors.exceptions.base import AppException
 from app.core.errors.handlers.business import handle_business_exceptions
 from app.core.errors.handlers.catchall import handle_generic_exceptions
 from app.core.errors.handlers.db import handle_db_exceptions
+from app.core.health.router import health_router
+from app.core.middleware.cache import etag_middleware
 from app.core.middleware.headers import add_global_headers
 from app.core.middleware.rate_limit import rate_limiter
 
@@ -56,15 +58,13 @@ def create_app() -> FastAPI:
 
     app.middleware("http")(add_global_headers)
     app.middleware("http")(rate_limiter)
+    app.middleware("http")(etag_middleware)
 
     app.add_exception_handler(AppException, handle_business_exceptions)
     app.add_exception_handler(SQLAlchemyError, handle_db_exceptions)
     app.add_exception_handler(Exception, handle_generic_exceptions)
 
-    @app.get("/health", tags=["Health"])
-    async def health_check():
-        return {"status": "ok"}
-
+    app.include_router(health_router)
     app.include_router(router_api, prefix="/api")
 
     return app

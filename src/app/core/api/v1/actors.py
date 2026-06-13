@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 
 from app.core.api.dependencies.auth import verify_api_key
+from app.core.api.dependencies.cache import long_cache, short_cache
 from app.modules.actors.dependencies import get_actor_service
 from app.modules.actors.schemas import ActorCreate, ActorResponse, ActorUpdate
 from app.modules.actors.service import ActorService
@@ -16,7 +17,12 @@ _INCLUDE_DESCRIPTION = (
 )
 
 
-@router.get("/", response_model=list[ActorResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=list[ActorResponse],
+    status_code=status.HTTP_200_OK,
+    dependencies=[short_cache()],
+)
 async def list_actors(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -38,7 +44,12 @@ async def create_actor(
     return await service.create(payload)
 
 
-@router.get("/{id}", response_model=ActorResponse, status_code=status.HTTP_200_OK)
+@router.get(
+    "/{id}",
+    response_model=ActorResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[long_cache()],
+)
 async def get_actor(
     id: UUID,
     # cas 3 — simple include: ?include=movies populates filmography in ActorResponse

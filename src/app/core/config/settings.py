@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     JWT_SESSION_MAX_LIFETIME_DAYS: int = Field(le=100)
     JWT_SESSION_MAX_COUNT: int = Field(le=10)
 
+    CACHE_MAX_AGE_SHORT: int = Field(ge=1)
+    CACHE_MAX_AGE_LONG: int = Field(ge=1)
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",  # silently ignore infra-only vars (DOCKER_IMAGE, CADDY_*, etc.)

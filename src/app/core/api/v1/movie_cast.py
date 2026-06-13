@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 
 from app.core.api.dependencies.auth import verify_api_key
+from app.core.api.dependencies.cache import short_cache
 from app.modules.movie_cast.dependencies import get_movie_cast_service
 from app.modules.movie_cast.schemas import (
     CastEntryCreate,
@@ -15,7 +16,12 @@ from app.modules.movie_cast.service import MovieCastService
 router = APIRouter()
 
 
-@router.get("/", response_model=list[CastEntryDetailedResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=list[CastEntryDetailedResponse],
+    status_code=status.HTTP_200_OK,
+    dependencies=[short_cache()],
+)
 async def list_cast_by_movie(
     movie_id: UUID,
     limit: int = Query(20, ge=1, le=100),
