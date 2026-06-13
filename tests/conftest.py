@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 import app.modules.actors.model  # noqa: F401
 import app.modules.audit_logs.model  # noqa: F401
 import app.modules.directors.model  # noqa: F401
+import app.modules.feature_flags.model  # noqa: F401
 import app.modules.genres.model  # noqa: F401
 import app.modules.movie_cast.model  # noqa: F401
 import app.modules.movie_details.model  # noqa: F401

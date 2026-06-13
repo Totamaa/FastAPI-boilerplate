@@ -25,6 +25,16 @@ class BaseModel(DeclarativeBase):
     deleted_at = Column(DateTime(timezone=True), nullable=True, default=None)
 
 
+class PlainBase(DeclarativeBase):
+    """Declarative base for models with custom PKs (not UUID).
+
+    Shares BaseModel.metadata so Alembic discovers all tables together.
+    NOT subject to the soft-delete session filter (applies to BaseModel only).
+    """
+
+    metadata = BaseModel.metadata
+
+
 @event.listens_for(Session, "do_orm_execute")
 def _apply_soft_delete_filter(execute_state) -> None:
     if (

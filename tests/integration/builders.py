@@ -53,6 +53,13 @@ def review_payload(movie_id, **overrides) -> dict:
     return data
 
 
+def feature_flag_payload(**overrides) -> dict:
+    word = fake.unique.word().lower()
+    data = {"key": f"test:{word}", "enabled": True, "rollout_percentage": 100}
+    data.update(overrides)
+    return data
+
+
 def cast_payload(movie_id, actor_id, **overrides) -> dict:
     data = {
         "movie_id": str(movie_id),
