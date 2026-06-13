@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 A production-ready FastAPI boilerplate built around a movie database domain.
-Async SQLAlchemy, JWT + API key auth, background tasks, scheduled jobs, soft delete — all wired up and tested.
+Async SQLAlchemy, JWT + API key auth, background tasks, scheduled jobs, soft delete - all wired up and tested.
 
 ---
 
@@ -38,7 +38,7 @@ Fork it, strip what you don't need, and build on top of a solid foundation.
 
 - **Python 3.12+**
 - **Docker Desktop** (PostgreSQL + Redis via Docker Compose)
-- **Make** — on Windows use Git Bash, WSL, or [GnuWin32](http://gnuwin32.sourceforge.net/packages/make.htm)
+- **Make** - on Windows use Git Bash, WSL, or [GnuWin32](http://gnuwin32.sourceforge.net/packages/make.htm)
 
 ## Quick start
 
