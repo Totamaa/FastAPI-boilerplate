@@ -5,6 +5,7 @@ from fastapi import status as http_status
 
 from app.core.api.dependencies.auth import verify_api_key
 from app.core.api.dependencies.cache import long_cache, short_cache
+from app.modules.feature_flags.dependencies import require_feature
 from app.modules.movie_details.dependencies import get_movie_detail_service
 from app.modules.movie_details.schemas import MovieDetailCreate, MovieDetailResponse
 from app.modules.movie_details.service import MovieDetailService
@@ -25,7 +26,7 @@ router = APIRouter()
     "/",
     response_model=list[MovieResponse],
     status_code=http_status.HTTP_200_OK,
-    dependencies=[short_cache()],
+    dependencies=[short_cache(), require_feature("movies:listing_enabled")],
 )
 async def list_movies(
     status: MovieStatus | None = None,

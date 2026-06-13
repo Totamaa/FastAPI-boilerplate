@@ -28,6 +28,7 @@ from app.modules.movies.model import MovieModel  # noqa: F401
 from app.modules.reviews.model import ReviewModel  # noqa: F401
 from app.modules.tokens.model import RefreshTokenFamilyModel, RefreshTokenModel  # noqa: F401
 from app.modules.users.model import UserModel  # noqa: F401
+from app.modules.feature_flags.model import FeatureFlagModel  # noqa: F401
 
 target_metadata = BaseModel.metadata
 
