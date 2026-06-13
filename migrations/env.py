@@ -18,6 +18,7 @@ if config.config_file_name is not None:
 # Import all models for autogenerate support
 from app.modules.actors.model import ActorModel  # noqa: F401
 from app.modules.associations.movie_genres import movie_genres  # noqa: F401 — registers the table
+from app.modules.audit_logs.model import AuditLogModel  # noqa: F401
 from app.modules.base.model import BaseModel
 from app.modules.directors.model import DirectorModel  # noqa: F401
 from app.modules.genres.model import GenreModel  # noqa: F401
