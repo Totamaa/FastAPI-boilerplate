@@ -53,11 +53,12 @@ async def logout(
 
 @router.post("/logout-all", status_code=status.HTTP_204_NO_CONTENT)
 async def logout_all(
+    request: Request,
     response: Response,
     current_user: UserModel = Depends(get_current_user),
     service: AuthService = Depends(get_auth_service),
 ) -> None:
-    await service.logout_all(current_user, response)
+    await service.logout_all(current_user, response, request)
 
 
 @router.get("/sessions", response_model=list[SessionResponse], status_code=status.HTTP_200_OK)
@@ -71,10 +72,11 @@ async def get_sessions(
 @router.delete("/sessions/{family_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_session(
     family_id: UUID,
+    request: Request,
     current_user: UserModel = Depends(get_current_user),
     service: AuthService = Depends(get_auth_service),
 ) -> None:
-    await service.revoke_session(family_id, current_user)
+    await service.revoke_session(family_id, current_user, request)
 
 
 @router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)

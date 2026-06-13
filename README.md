@@ -6,7 +6,7 @@
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
 [![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen?style=flat-square)](tests/)
-[![CI](https://img.shields.io/github/actions/workflow/status/your-username/moviedb/test.yml?style=flat-square&label=CI)](https://github.com/your-username/moviedb/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/Totamaa/FastAPI-boilerplate/test.yml?style=flat-square&label=CI)](https://github.com/Totamaa/FastAPI-boilerplate/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 A production-ready FastAPI boilerplate built around a movie database domain.
@@ -31,7 +31,7 @@ Fork it, strip what you don't need, and build on top of a solid foundation.
 | Migrations | Alembic |
 | Auth | JWT (access + refresh) + API key |
 | Scheduler | APScheduler (cron jobs) |
-| Testing | pytest-asyncio, httpx, coverage ≥ 85 % |
+| Testing | pytest-asyncio, httpx, coverage ≥ 90 % |
 | Packaging | uv + pip-tools |
 
 ## Prerequisites
@@ -45,7 +45,7 @@ Fork it, strip what you don't need, and build on top of a solid foundation.
 ```bash
 # 1. Clone
 git clone https://github.com/Totamaa/FastAPI-boilerplate
-cd moviedb
+cd FastAPI-boilerplate
 
 # 2. Copy environment config and fill in values
 cp .env.example .env
@@ -57,7 +57,7 @@ make setup
 make dev
 ```
 
-The API is available at `http://localhost:8000` and the interactive docs at `http://localhost:8000/docs`.
+The API is available at `http://localhost:8000` and the interactive docs at `http://localhost:8000/api/docs`.
 
 ## Common commands
 

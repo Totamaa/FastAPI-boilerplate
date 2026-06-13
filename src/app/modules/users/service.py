@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.logs import LoggerManager
 from app.core.security.hash_lib import hash_password, verify_password
+from app.modules.audit_logs.enums import AuditAction
+from app.modules.audit_logs.service import AuditLogService
 from app.modules.reviews.repository import ReviewRepository
 from app.modules.users.exceptions import (
     InvalidCredentialsException,
@@ -25,6 +27,7 @@ class UserService:
         request_id: str,
         user_repository: UserRepository,
         review_repository: ReviewRepository,
+        audit_log_service: AuditLogService,
     ):
         self.tag = "SERVICE:User"
         self.logger = logger
@@ -32,6 +35,7 @@ class UserService:
         self.request_id = request_id
         self.user_repository = user_repository
         self.review_repository = review_repository
+        self.audit_log_service = audit_log_service
 
     async def get_by_id(self, id: UUID) -> UserResponse:
         user = await self.user_repository.get_by_id(id=id, db=self.session)
@@ -53,9 +57,10 @@ class UserService:
             email=data.email,
             hashed_password=hash_password(data.password),
         )
-        return await self.user_repository.create(user=user, db=self.session)
+        created = await self.user_repository.create(user=user, db=self.session)
+        return created
 
-    async def delete(self, id: UUID) -> None:
+    async def delete(self, id: UUID, actor_id: UUID | None = None) -> None:
         user = await self.user_repository.get_by_id(id=id, db=self.session)
         if not user:
             raise UserNotFoundException(id=id)
@@ -66,6 +71,12 @@ class UserService:
         user.deleted_at = datetime.now(UTC)
         await self.review_repository.soft_delete_by_user(user_id=id, db=self.session)
         await self.session.flush()
+        await self.audit_log_service.record(
+            action=AuditAction.USER_DELETED,
+            actor_id=actor_id,
+            target_type="user",
+            target_id=id,
+        )
 
     async def restore(self, id: UUID) -> UserResponse:
         user = await self.user_repository.restore(id=id, db=self.session)
