@@ -93,7 +93,6 @@ services:
   # ── Worker ─────────────────────────────────────────────────────────────────
   # Taskiq worker. Sur les deux réseaux : Redis via nyaya_internal,
   # appels IA sortants via nyaya_net.
-  # Le label ofelia déclenche le trigger mensuel le 1er du mois à 03h00.
   worker:
     image: ${DOCKER_IMAGE}
     command:
@@ -113,25 +112,27 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
-    labels:
-      ofelia.enabled: "true"
-      ofelia.job-exec.monthly-review.schedule: "0 3 1 * *"
-      ofelia.job-exec.monthly-review.command: "python -m app.background.trigger_montlhy_review"
 
-  # ── Scheduler (Ofelia) ─────────────────────────────────────────────────────
-  # Lit les labels Docker et exécute les jobs via docker exec (socket en ro).
-  # Aucun accès DB/Redis direct — passe par le worker via exec.
+  # ── Scheduler (Taskiq) ─────────────────────────────────────────────────────
+  # Process unique qui lit les labels @broker.task(schedule=[...]) et enfile
+  # les tâches dans Redis à l'heure prévue. Le worker les consomme.
+  # Un seul replica — ne pas scaler ce service.
   scheduler:
-    image: mcuadros/ofelia:latest
+    image: ${DOCKER_IMAGE}
+    command:
+      - taskiq
+      - scheduler
+      - app.core.config.broker:scheduler
+      - app.background.scheduled
     restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: daemon --docker
+    env_file: .env
     networks:
-      - nyaya_net
+      - nyaya_internal
     depends_on:
-      worker:
-        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
   # ── Proxy (Caddy) ──────────────────────────────────────────────────────────
   # TLS auto (Let's Encrypt), HTTP→HTTPS, reverse proxy vers api.

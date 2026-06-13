@@ -3,7 +3,6 @@ sqlalchemy
 greenlet
 fastapi[all]
 python-json-logger
-apscheduler
 asyncpg
 python-jose
 passlib[bcrypt]
