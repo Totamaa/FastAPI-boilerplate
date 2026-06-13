@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.background.tasks.movie_stats import update_movie_stats_after_review
 from app.core.api.dependencies.auth import get_current_user, verify_api_key
+from app.core.api.dependencies.cache import short_cache
 from app.core.api.dependencies.db import get_session
 from app.modules.reviews.dependencies import get_review_service
 from app.modules.reviews.schemas import (
@@ -19,7 +20,12 @@ from app.modules.users.model import UserModel
 router = APIRouter()
 
 
-@router.get("/", response_model=list[ReviewDetailedResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=list[ReviewDetailedResponse],
+    status_code=status.HTTP_200_OK,
+    dependencies=[short_cache()],
+)
 async def list_reviews(
     movie_id: UUID,
     limit: int = Query(20, ge=1, le=100),

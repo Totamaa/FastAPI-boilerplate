@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi import status as http_status
 
 from app.core.api.dependencies.auth import verify_api_key
+from app.core.api.dependencies.cache import long_cache, short_cache
 from app.modules.movie_details.dependencies import get_movie_detail_service
 from app.modules.movie_details.schemas import MovieDetailCreate, MovieDetailResponse
 from app.modules.movie_details.service import MovieDetailService
@@ -20,7 +21,12 @@ from app.modules.movies.service import MovieService
 router = APIRouter()
 
 
-@router.get("/", response_model=list[MovieResponse], status_code=http_status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=list[MovieResponse],
+    status_code=http_status.HTTP_200_OK,
+    dependencies=[short_cache()],
+)
 async def list_movies(
     status: MovieStatus | None = None,
     release_year: int | None = None,
@@ -46,7 +52,12 @@ async def create_movie(
     return await service.create(payload)
 
 
-@router.get("/{id}", response_model=MovieDetailedResponse, status_code=http_status.HTTP_200_OK)
+@router.get(
+    "/{id}",
+    response_model=MovieDetailedResponse,
+    status_code=http_status.HTTP_200_OK,
+    dependencies=[long_cache()],
+)
 async def get_movie(
     id: UUID,
     service: MovieService = Depends(get_movie_service),

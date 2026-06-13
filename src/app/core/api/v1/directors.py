@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 
 from app.core.api.dependencies.auth import verify_api_key
+from app.core.api.dependencies.cache import long_cache, short_cache
 from app.modules.directors.dependencies import get_director_service
 from app.modules.directors.schemas import DirectorCreate, DirectorResponse, DirectorUpdate
 from app.modules.directors.service import DirectorService
@@ -13,7 +14,12 @@ from app.modules.movies.service import MovieService
 router = APIRouter()
 
 
-@router.get("/", response_model=list[DirectorResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=list[DirectorResponse],
+    status_code=status.HTTP_200_OK,
+    dependencies=[short_cache()],
+)
 async def list_directors(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -41,7 +47,12 @@ async def create_director(
     return await service.create(payload)
 
 
-@router.get("/{id}", response_model=DirectorResponse, status_code=status.HTTP_200_OK)
+@router.get(
+    "/{id}",
+    response_model=DirectorResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[long_cache()],
+)
 async def get_director(
     id: UUID,
     service: DirectorService = Depends(get_director_service),
@@ -50,7 +61,12 @@ async def get_director(
 
 
 # cas 1 — sub-resource: movies by this director, served by MovieService
-@router.get("/{id}/movies", response_model=list[MovieResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/{id}/movies",
+    response_model=list[MovieResponse],
+    status_code=status.HTTP_200_OK,
+    dependencies=[short_cache()],
+)
 async def list_director_movies(
     id: UUID,
     limit: int = Query(20, ge=1, le=100),
