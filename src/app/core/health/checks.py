@@ -19,7 +19,7 @@ async def check_db() -> dict:
         return {"status": "ok", "latency_ms": latency_ms}
     except Exception as exc:
         logger.error("HEALTH:DB", "Database check failed", extra=str(exc), exc=exc)
-        return {"status": "down", "error": str(exc)}
+        return {"status": "down", "error": "Database check failed"}
 
 
 async def check_redis() -> dict:
@@ -32,7 +32,7 @@ async def check_redis() -> dict:
         return {"status": "ok", "latency_ms": latency_ms}
     except Exception as exc:
         logger.warning("HEALTH:Redis", "Redis check failed", extra=str(exc), exc=exc)
-        return {"status": "down", "error": str(exc)}
+        return {"status": "down", "error": "Redis check failed"}
     finally:
         if client is not None:
             await client.aclose()
