@@ -67,6 +67,11 @@ services:
   # ── API ────────────────────────────────────────────────────────────────────
   # Pont entre les deux réseaux : accède à DB/Redis via nyaya_internal,
   # est joignable par Caddy via nyaya_net.
+  #
+  # Health probes disponibles :
+  #   /health/live  → liveness  (process vivant) — k8s livenessProbe
+  #   /health/ready → readiness (DB + Redis ok)  — k8s readinessProbe, Docker healthcheck
+  #   /health       → identique à /health/ready  (rétrocompatibilité)
   api:
     image: ${DOCKER_IMAGE}
     restart: unless-stopped
@@ -84,7 +89,7 @@ services:
     healthcheck:
       test:
         - "CMD-SHELL"
-        - "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""
+        - "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')\""
       interval: 30s
       timeout: 10s
       retries: 3
