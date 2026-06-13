@@ -58,13 +58,6 @@ class UserService:
             hashed_password=hash_password(data.password),
         )
         created = await self.user_repository.create(user=user, db=self.session)
-        await self.audit_log_service.record(
-            action=AuditAction.USER_CREATED,
-            actor_id=created.id,
-            target_type="user",
-            target_id=created.id,
-            diff={"email": created.email},
-        )
         return created
 
     async def delete(self, id: UUID, actor_id: UUID | None = None) -> None:
@@ -72,7 +65,6 @@ class UserService:
         if not user:
             raise UserNotFoundException(id=id)
         self.logger.info(tag=self.tag, message=f"Deleting user id={id}", extra=self.request_id)
-        old_email = user.email
         # Anonymize PII immediately (RGPD right to erasure).
         user.email = f"deleted-{uuid4()}@deleted.local"
         user.hashed_password = "REDACTED"
@@ -84,7 +76,6 @@ class UserService:
             actor_id=actor_id,
             target_type="user",
             target_id=id,
-            diff={"before": {"email": old_email}},
         )
 
     async def restore(self, id: UUID) -> UserResponse:

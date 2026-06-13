@@ -63,6 +63,12 @@ class AuthService:
 
     async def register(self, data: UserRegister) -> UserResponse:
         user = await self.user_service.register(data)
+        await self.audit_log_service.record(
+            action=AuditAction.USER_CREATED,
+            actor_id=user.id,
+            target_type="user",
+            target_id=user.id,
+        )
         self.logger.info(self.tag, f"Registered user id={user.id}")
         return UserResponse.from_model(user)
 

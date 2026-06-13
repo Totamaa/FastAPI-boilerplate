@@ -31,7 +31,7 @@ Fork it, strip what you don't need, and build on top of a solid foundation.
 | Migrations | Alembic |
 | Auth | JWT (access + refresh) + API key |
 | Scheduler | APScheduler (cron jobs) |
-| Testing | pytest-asyncio, httpx, coverage ≥ 85 % |
+| Testing | pytest-asyncio, httpx, coverage ≥ 90 % |
 | Packaging | uv + pip-tools |
 
 ## Prerequisites
