@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -44,17 +42,15 @@ def _async_client(app, headers: dict | None = None):
 @pytest.fixture
 async def client(_test_app):
     """Unauthenticated — public endpoints."""
-    with patch("app.main.start_scheduler"), patch("app.main.stop_scheduler"):
-        async with _async_client(_test_app) as c:
-            yield c
+    async with _async_client(_test_app) as c:
+        yield c
 
 
 @pytest.fixture
 async def admin_client(_test_app, settings):
     """API-key authenticated — admin-protected endpoints."""
-    with patch("app.main.start_scheduler"), patch("app.main.stop_scheduler"):
-        async with _async_client(_test_app, api_key_headers(settings.API_KEY)) as c:
-            yield c
+    async with _async_client(_test_app, api_key_headers(settings.API_KEY)) as c:
+        yield c
 
 
 @pytest.fixture
@@ -75,9 +71,8 @@ async def test_user(db_session) -> UserModel:
 async def user_client(_test_app, test_user):
     """JWT-authenticated client for test_user."""
     token = create_access_token(test_user.id)
-    with patch("app.main.start_scheduler"), patch("app.main.stop_scheduler"):
-        async with _async_client(_test_app, {"Authorization": f"Bearer {token}"}) as c:
-            yield c
+    async with _async_client(_test_app, {"Authorization": f"Bearer {token}"}) as c:
+        yield c
 
 
 @pytest.fixture
@@ -90,9 +85,8 @@ async def second_user(db_session) -> UserModel:
 async def second_user_client(_test_app, second_user):
     """JWT-authenticated client for second_user."""
     token = create_access_token(second_user.id)
-    with patch("app.main.start_scheduler"), patch("app.main.stop_scheduler"):
-        async with _async_client(_test_app, {"Authorization": f"Bearer {token}"}) as c:
-            yield c
+    async with _async_client(_test_app, {"Authorization": f"Bearer {token}"}) as c:
+        yield c
 
 
 # ── Shared resource fixtures ──────────────────────────────────────────────────

@@ -13,7 +13,6 @@ from app.core.errors.handlers.catchall import handle_generic_exceptions
 from app.core.errors.handlers.db import handle_db_exceptions
 from app.core.middleware.headers import add_global_headers
 from app.core.middleware.rate_limit import rate_limiter
-from app.scheduler.scheduler import start_scheduler, stop_scheduler
 
 
 def create_app() -> FastAPI:
@@ -31,9 +30,7 @@ def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         logger.info("SYSTEM:Startup", "Backend started")
-        start_scheduler()
         yield
-        stop_scheduler()
         logger.info("SYSTEM:Shutdown", "Backend stopped")
 
     app = FastAPI(

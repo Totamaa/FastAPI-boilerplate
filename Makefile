@@ -89,9 +89,10 @@ sync: _venv-check up ## Recompile deps + sync venv + apply migrations
 	$(ALEMBIC) upgrade head
 
 .PHONY: dev
-dev: _venv-check up migrate ## Start API + worker (Ctrl+C stops all)
+dev: _venv-check up migrate ## Start API + worker + scheduler (Ctrl+C stops all)
 	@trap 'kill 0' INT TERM; \
 	$(TASKIQ) worker app.core.config.broker:broker app.background.tasks $(TASKIQ_WORKER_OPTS) & \
+	$(TASKIQ) scheduler app.core.config.broker:scheduler app.background.scheduled & \
 	PYTHONUTF8=1 $(FASTAPI) dev $(APP_ENTRY) & \
 	wait
 
