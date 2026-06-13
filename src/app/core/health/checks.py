@@ -4,7 +4,10 @@ import redis.asyncio as aioredis
 from sqlalchemy import text
 
 from app.core.config.database import engine
+from app.core.config.logs import get_logger
 from app.core.config.redis import REDIS_URL
+
+logger = get_logger()
 
 
 async def check_db() -> dict:
@@ -15,6 +18,7 @@ async def check_db() -> dict:
         latency_ms = round((time.monotonic() - start) * 1000, 2)
         return {"status": "ok", "latency_ms": latency_ms}
     except Exception as exc:
+        logger.error("HEALTH:DB", "Database check failed", extra=str(exc), exc=exc)
         return {"status": "down", "error": str(exc)}
 
 
@@ -27,6 +31,7 @@ async def check_redis() -> dict:
         latency_ms = round((time.monotonic() - start) * 1000, 2)
         return {"status": "ok", "latency_ms": latency_ms}
     except Exception as exc:
+        logger.warning("HEALTH:Redis", "Redis check failed", extra=str(exc), exc=exc)
         return {"status": "down", "error": str(exc)}
     finally:
         if client is not None:

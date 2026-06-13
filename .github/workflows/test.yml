@@ -56,6 +56,8 @@ jobs:
       JWT_SESSION_MAX_LIFETIME_DAYS: "30"
       JWT_SESSION_MAX_COUNT: "5"
       JWT_SECRET_KEY: ci_jwt_secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      CACHE_MAX_AGE_SHORT: "60"
+      CACHE_MAX_AGE_LONG: "300"
 
     steps:
       - uses: actions/checkout@v4
