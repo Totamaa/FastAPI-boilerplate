@@ -13,3 +13,8 @@ class UserModel(BaseModel):
     is_admin = Column(Boolean, nullable=False, default=False)
 
     reviews = relationship("ReviewModel", back_populates="author", passive_deletes=True)
+    token_families = relationship(
+        "RefreshTokenFamilyModel",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

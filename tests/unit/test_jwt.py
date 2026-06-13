@@ -12,7 +12,6 @@ from app.core.errors.exceptions.auth import (
 from app.core.security.jwt_lib import (
     TokenPayload,
     create_access_token,
-    create_refresh_token,
     decode_token,
 )
 
@@ -23,21 +22,11 @@ class TestCreateTokens:
         token = create_access_token(uuid4())
         assert isinstance(token, str) and len(token) > 0
 
-    def test_create_refresh_token_returns_string(self):
-        token = create_refresh_token(uuid4())
-        assert isinstance(token, str) and len(token) > 0
-
     def test_access_token_has_correct_type(self):
         user_id = uuid4()
         token = create_access_token(user_id)
         payload = decode_token(token)
         assert payload.type == "access"
-
-    def test_refresh_token_has_correct_type(self):
-        user_id = uuid4()
-        token = create_refresh_token(user_id)
-        payload = decode_token(token)
-        assert payload.type == "refresh"
 
     def test_token_sub_matches_user_id(self):
         user_id = uuid4()
